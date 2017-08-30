@@ -52,7 +52,7 @@ class ToTensor(object):
         """
         if isinstance(pic, np.ndarray):
             # handle numpy array
-            img = torch.from_numpy(pic.transpose((2, 0, 1)))
+            img = torch.from_numpy(pic)
             # backward compatibility
             return img.float().div(255)
 
@@ -323,7 +323,7 @@ class RandomHorizontalFlip(object):
             PIL.Image: Randomly flipped image.
         """
         if random.random() < 0.5:
-            return img.transpose(Image.FLIP_LEFT_RIGHT)
+            img = np.flip(img, axis=2).copy()
         return img
 
 
@@ -345,27 +345,7 @@ class RandomSizedCrop(object):
         self.interpolation = interpolation
 
     def __call__(self, img):
-        for attempt in range(10):
-            area = img.size[0] * img.size[1]
-            target_area = random.uniform(0.08, 1.0) * area
-            aspect_ratio = random.uniform(3. / 4, 4. / 3)
-
-            w = int(round(math.sqrt(target_area * aspect_ratio)))
-            h = int(round(math.sqrt(target_area / aspect_ratio)))
-
-            if random.random() < 0.5:
-                w, h = h, w
-
-            if w <= img.size[0] and h <= img.size[1]:
-                x1 = random.randint(0, img.size[0] - w)
-                y1 = random.randint(0, img.size[1] - h)
-
-                img = img.crop((x1, y1, x1 + w, y1 + h))
-                assert(img.size == (w, h))
-
-                return img.resize((self.size, self.size), self.interpolation)
-
-        # Fallback
-        scale = Scale(self.size, interpolation=self.interpolation)
-        crop = CenterCrop(self.size)
-        return crop(scale(img))
+        h_off = random.randint(0, img.shape[1]-self.size)
+        w_off = random.randint(0, img.shape[2]-self.size)
+        img = img[:, h_off:h_off+self.size, w_off:w_off+self.size]
+        return img

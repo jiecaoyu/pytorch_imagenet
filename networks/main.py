@@ -32,8 +32,8 @@ parser.add_argument('--arch', '-a', metavar='ARCH', default='resnet18',
                     help='model architecture: ' +
                         ' | '.join(model_names) +
                         ' (default: resnet18)')
-parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
-                    help='number of data loading workers (default: 4)')
+parser.add_argument('-j', '--workers', default=1, type=int, metavar='N',
+                    help='number of data loading workers (default: 1)')
 parser.add_argument('--epochs', default=90, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
@@ -67,6 +67,7 @@ best_prec1 = 0
 def main():
     global args, best_prec1
     args = parser.parse_args()
+    assert(args.workers==1) # currently we can only have one loader
 
     args.distributed = args.world_size > 1
 
@@ -128,7 +129,8 @@ def main():
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize,
-        ]))
+        ]),
+        Train=True)
 
     if args.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
@@ -136,7 +138,7 @@ def main():
         train_sampler = None
 
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=True, #False,
+        train_dataset, batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True, sampler=train_sampler)
 
     val_loader = torch.utils.data.DataLoader(
@@ -145,7 +147,8 @@ def main():
             transforms.CenterCrop(224),
             transforms.ToTensor(),
             normalize,
-        ])),
+        ]),
+        Train=False),
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 

@@ -3,6 +3,8 @@ import torch.utils.data as data
 from PIL import Image
 import os
 import os.path
+import lmdb
+import caffe
 
 IMG_EXTENSIONS = [
     '.jpg', '.JPG', '.jpeg', '.JPEG',
@@ -91,7 +93,7 @@ class ImageFolder(data.Dataset):
     """
 
     def __init__(self, root, transform=None, target_transform=None,
-                 loader=default_loader):
+                 loader=default_loader, Train=True):
         classes, class_to_idx = find_classes(root)
         imgs = make_dataset(root, class_to_idx)
         if len(imgs) == 0:
@@ -106,6 +108,16 @@ class ImageFolder(data.Dataset):
         self.target_transform = target_transform
         self.loader = loader
 
+        self.Train = Train
+        self.lmdb_dir = '/data/jiecaoyu/imagenet/lmdb' # this is mannually set, NEED change
+        if self.Train:
+            self.lmdb_dir = self.lmdb_dir+'/ilsvrc12_train_lmdb/'
+        else:
+            self.lmdb_dir = self.lmdb_dir+'/ilsvrc12_val_lmdb/'
+        self.lmdb_env = lmdb.open(self.lmdb_dir)
+        self.lmdb_txn = self.lmdb_env.begin()
+        self.lmdb_cursor = self.lmdb_txn.cursor()
+
     def __getitem__(self, index):
         """
         Args:
@@ -114,12 +126,15 @@ class ImageFolder(data.Dataset):
         Returns:
             tuple: (image, target) where target is class_index of the target class.
         """
-        path, target = self.imgs[index]
-        img = self.loader(path)
+        datum = caffe.proto.caffe_pb2.Datum()
+        if not self.lmdb_cursor.next():
+            self.lmdb_cursor.first()
+        value = self.lmdb_cursor.value()
+        datum.ParseFromString(value)
+        data = caffe.io.datum_to_array(datum)
         if self.transform is not None:
-            img = self.transform(img)
-        if self.target_transform is not None:
-            target = self.target_transform(target)
+            img = self.transform(data)
+        target = datum.label
 
         return img, target
 
