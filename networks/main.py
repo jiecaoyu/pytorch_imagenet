@@ -32,8 +32,8 @@ parser.add_argument('--arch', '-a', metavar='ARCH', default='resnet18',
                     help='model architecture: ' +
                         ' | '.join(model_names) +
                         ' (default: resnet18)')
-parser.add_argument('-j', '--workers', default=1, type=int, metavar='N',
-                    help='number of data loading workers (default: 1)')
+parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
+                    help='number of data loading workers (default: 8)')
 parser.add_argument('--epochs', default=90, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
@@ -67,7 +67,6 @@ best_prec1 = 0
 def main():
     global args, best_prec1
     args = parser.parse_args()
-    assert(args.workers==1) # currently we can only have one loader
 
     args.distributed = args.world_size > 1
 
