@@ -13,7 +13,7 @@ import torch.utils.data
 import torch.utils.data.distributed
 # import torchvision.transforms as transforms
 # import torchvision.datasets as datasets
-from model_list import alexnet
+import model_list
 
 # set the seed
 torch.manual_seed(1)
@@ -76,7 +76,7 @@ def main():
     else:
         print("=> creating model '{}'".format(args.arch))
         if args.arch=='alexnet':
-            model = alexnet.alexnet()
+            model = model_list.alexnet()
             input_size = 227
         else:
             raise Exception('Model not supported yet')
