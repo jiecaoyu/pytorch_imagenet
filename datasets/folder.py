@@ -116,7 +116,7 @@ class ImageFolder(data.Dataset):
             self.lmdb_dir = self.lmdb_dir+'/ilsvrc12_val_lmdb/'
         self.lmdb_env = lmdb.open(self.lmdb_dir, readonly=True)
         self.lmdb_txn = self.lmdb_env.begin()
-        self.lmdb_cursor = self.lmdb_txn.cursor()
+        # self.lmdb_cursor = self.lmdb_txn.cursor()
 
     def __getitem__(self, index):
         """
@@ -127,9 +127,9 @@ class ImageFolder(data.Dataset):
             tuple: (image, target) where target is class_index of the target class.
         """
         datum = caffe.proto.caffe_pb2.Datum()
+        lmdb_cursor = self.lmdb_txn.cursor()
         key_index ='{:08}'.format(index)
-        self.lmdb_cursor.set_key(key_index)
-        value = self.lmdb_cursor.value()
+        value = lmdb_cursor.get(key_index)
         datum.ParseFromString(value)
         data = caffe.io.datum_to_array(datum)
         if self.transform is not None:

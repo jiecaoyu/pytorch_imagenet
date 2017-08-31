@@ -15,6 +15,10 @@ import torch.utils.data.distributed
 # import torchvision.datasets as datasets
 import torchvision.models as models
 
+# set the seed
+torch.manual_seed(1)
+torch.cuda.manual_seed(1)
+
 import sys
 import gc
 sys.path.append('/data/jiecaoyu/imagenet/pytorch_imagenet')
@@ -82,6 +86,17 @@ def main():
     else:
         print("=> creating model '{}'".format(args.arch))
         model = models.__dict__[args.arch]()
+
+        # initialize the model
+        for m in model.modules():
+            if isinstance(m, nn.Conv2d):
+                print m
+                m.weight.data.normal_(0, 0.01)
+                m.bias.data.zero_().add(0.1)
+            elif isinstance(m, nn.Linear):
+                print m
+                m.weight.data.normal_(0, 0.01)
+                m.bias.data.zero_()
 
     if not args.distributed:
         if args.arch.startswith('alexnet') or args.arch.startswith('vgg'):
