@@ -92,18 +92,8 @@ class ImageFolder(data.Dataset):
         imgs (list): List of (image path, class_index) tuples
     """
 
-    def __init__(self, root, transform=None, target_transform=None,
+    def __init__(self, transform=None, target_transform=None,
                  loader=default_loader, Train=True):
-        classes, class_to_idx = find_classes(root)
-        imgs = make_dataset(root, class_to_idx)
-        if len(imgs) == 0:
-            raise(RuntimeError("Found 0 images in subfolders of: " + root + "\n"
-                               "Supported image extensions are: " + ",".join(IMG_EXTENSIONS)))
-
-        self.root = root
-        self.imgs = imgs
-        self.classes = classes
-        self.class_to_idx = class_to_idx
         self.transform = transform
         self.target_transform = target_transform
         self.loader = loader
@@ -116,7 +106,8 @@ class ImageFolder(data.Dataset):
             self.lmdb_dir = self.lmdb_dir+'/ilsvrc12_val_lmdb/'
         self.lmdb_env = lmdb.open(self.lmdb_dir, readonly=True)
         self.lmdb_txn = self.lmdb_env.begin()
-        # self.lmdb_cursor = self.lmdb_txn.cursor()
+
+        self.length = self.lmdb_env.stat()['entries']
 
     def __getitem__(self, index):
         """
@@ -139,4 +130,4 @@ class ImageFolder(data.Dataset):
         return img, target
 
     def __len__(self):
-        return len(self.imgs)
+        return self.length
