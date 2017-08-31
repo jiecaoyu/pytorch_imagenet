@@ -16,6 +16,7 @@ import torch.utils.data.distributed
 import torchvision.models as models
 
 import sys
+import gc
 sys.path.append('/data/jiecaoyu/imagenet/pytorch_imagenet')
 import datasets as datasets
 import datasets.transforms as transforms
@@ -225,6 +226,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
                   'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
                    epoch, i, len(train_loader), batch_time=batch_time,
                    data_time=data_time, loss=losses, top1=top1, top5=top5))
+        gc.collect()
 
 
 def validate(val_loader, model, criterion):

@@ -180,24 +180,10 @@ class Scale(object):
         Args:
             img (PIL.Image): Image to be scaled.
 
-        Returns:
-            PIL.Image: Rescaled image.
         """
-        if isinstance(self.size, int):
-            w, h = img.size
-            if (w <= h and w == self.size) or (h <= w and h == self.size):
-                return img
-            if w < h:
-                ow = self.size
-                oh = int(self.size * h / w)
-                return img.resize((ow, oh), self.interpolation)
-            else:
-                oh = self.size
-                ow = int(self.size * w / h)
-                return img.resize((ow, oh), self.interpolation)
-        else:
-            return img.resize(self.size, self.interpolation)
-
+        assert(img.shape[1]==self.size)
+        assert(img.shape[2]==self.size)
+        return img
 
 class CenterCrop(object):
     """Crops the given PIL.Image at the center.
@@ -222,11 +208,12 @@ class CenterCrop(object):
         Returns:
             PIL.Image: Cropped image.
         """
-        w, h = img.size
+        w, h = (img.shape[1], img.shape[2])
         th, tw = self.size
-        x1 = int(round((w - tw) / 2.))
-        y1 = int(round((h - th) / 2.))
-        return img.crop((x1, y1, x1 + tw, y1 + th))
+        w_off = int(round((w - tw) / 2.))
+        h_off = int(round((h - th) / 2.))
+        img = img[:, h_off:h_off+th, w_off:w_off+tw]
+        return img
 
 
 class Pad(object):
