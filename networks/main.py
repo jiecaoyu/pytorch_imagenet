@@ -13,7 +13,7 @@ import torch.utils.data
 import torch.utils.data.distributed
 # import torchvision.transforms as transforms
 # import torchvision.datasets as datasets
-import torchvision.models as models
+from model_list import alexnet
 
 # set the seed
 torch.manual_seed(1)
@@ -25,19 +25,12 @@ sys.path.append('/data/jiecaoyu/imagenet/pytorch_imagenet')
 import datasets as datasets
 import datasets.transforms as transforms
 
-model_names = sorted(name for name in models.__dict__
-    if name.islower() and not name.startswith("__")
-    and callable(models.__dict__[name]))
-
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
-parser.add_argument('--arch', '-a', metavar='ARCH', default='resnet18',
-                    choices=model_names,
-                    help='model architecture: ' +
-                        ' | '.join(model_names) +
-                        ' (default: resnet18)')
+parser.add_argument('--arch', '-a', metavar='ARCH', default='alexnet',
+                    help='model architecture (default: alexnet)')
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
                     help='number of data loading workers (default: 8)')
-parser.add_argument('--epochs', default=90, type=int, metavar='N',
+parser.add_argument('--epochs', default=160, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
@@ -80,10 +73,13 @@ def main():
     # create model
     if args.pretrained:
         print("=> using pre-trained model '{}'".format(args.arch))
-        model = models.__dict__[args.arch](pretrained=True)
     else:
         print("=> creating model '{}'".format(args.arch))
-        model = models.__dict__[args.arch]()
+        if args.arch=='alexnet':
+            model = alexnet.alexnet()
+            input_size = 227
+        else:
+            raise Exception('Model not supported yet')
 
     if not args.distributed:
         if args.arch.startswith('alexnet') or args.arch.startswith('vgg'):
@@ -124,7 +120,7 @@ def main():
 
     train_dataset = datasets.ImageFolder(
         transforms.Compose([
-            transforms.RandomSizedCrop(224),
+            transforms.RandomSizedCrop(input_size),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize,
@@ -143,7 +139,7 @@ def main():
     val_loader = torch.utils.data.DataLoader(
         datasets.ImageFolder(transforms.Compose([
             transforms.Scale(256),
-            transforms.CenterCrop(224),
+            transforms.CenterCrop(input_size),
             transforms.ToTensor(),
             normalize,
         ]),
@@ -297,8 +293,8 @@ class AverageMeter(object):
 
 
 def adjust_learning_rate(optimizer, epoch):
-    """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    lr = args.lr * (0.1 ** (epoch // 30))
+    """Sets the learning rate to the initial LR decayed by 10 every 40 epochs"""
+    lr = args.lr * (0.1 ** (epoch // 40))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
