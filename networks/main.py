@@ -36,9 +36,9 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=256, type=int,
                     metavar='N', help='mini-batch size (default: 256)')
-parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.01, type=float,
                     metavar='LR', help='initial learning rate')
-parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
+parser.add_argument('--momentum', default=0.95, type=float, metavar='M',
                     help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float,
                     metavar='W', help='weight decay (default: 5e-4)')
@@ -151,6 +151,7 @@ def main():
         validate(val_loader, model, criterion)
         return
 
+    print model
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
