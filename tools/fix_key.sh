@@ -1,6 +1,8 @@
+# original lmdb paths
 Original_Train_LMDB=/data/jiecaoyu/imagenet/lmdb/ilsvrc12_train_lmdb_badkey/
 Original_Val_LMDB=/data/jiecaoyu/imagenet/lmdb/ilsvrc12_val_lmdb_badkey/
 
+# target lmdb paths
 Target_Train_LMDB=/data/jiecaoyu/imagenet/lmdb/ilsvrc12_train_lmdb/
 Target_Val_LMDB=/data/jiecaoyu/imagenet/lmdb/ilsvrc12_val_lmdb/
 
