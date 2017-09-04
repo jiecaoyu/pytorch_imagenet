@@ -21,7 +21,8 @@ torch.cuda.manual_seed(1)
 
 import sys
 import gc
-sys.path.append('/data/jiecaoyu/imagenet/pytorch_imagenet')
+cwd = os.getcwd()
+sys.path.append(cwd+'/../')
 import datasets as datasets
 import datasets.transforms as transforms
 
