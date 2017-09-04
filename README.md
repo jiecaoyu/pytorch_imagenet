@@ -13,3 +13,14 @@ Preprocessed data will be available soon.
 Please change the variable ```lmdb_dir``` in ```./datasets/folder.py``` to the directory which includes the training and validating LMDB datasets.
 # AlexNet
 The implementation is in ```./networks/model_list/alexnet.py```. Since PyTorch does not support local response normalization (LRN) layer, I implements it also. The trained model will be available soon.
+### Training from scratch
+```bash
+$ cd networks
+$ python main.py --arch alexent
+```
+
+### Evaluate pretained model
+Pretrained model is available [here](https://drive.google.com/uc?export=download&id=0B-7I62GOSnZ8NzVxZndDU2dYcHM). Please download it and put it under the directory of ```./networks/model_list/```. Run the evaluation by:
+```bash
+$ python main.py --arch alexent --pretrained --evaluate
+```
