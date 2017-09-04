@@ -1,2 +1,2 @@
-checkpoint.pth.tar
-model_best.pth.tar
+*.pth.tar
+*.pth.tar
