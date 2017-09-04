@@ -1,4 +1,4 @@
-The implementation in Torch Vision is not actually accurate. In this case, this repository reimplements some of the networks for the author's usage.
+The implementation of AlexNet in [PyTorch Vision](https://github.com/pytorch/vision) is not actually the ordinary version. In this case, this repository reimplements some of the networks for the author's usage.
 
 # Pre-requirements
 - [Caffe](https://github.com/BVLC/caffe)
@@ -6,4 +6,6 @@ The implementation in Torch Vision is not actually accurate. In this case, this 
 
 # Data Preparation
 The original data loader ([link](https://github.com/pytorch/vision#imagenet-12)) is slow. Therefore, I build a new data loader with Caffe utils.
+### Genearte LMDB
+Follow the [instructions](http://caffe.berkeleyvision.org/gathered/examples/imagenet.html) for Caffe to build the LMDB dataset of ImageNet. Howeveri, the '''key''' used in the LMDB dataset is not suitable for accessing. Therefore, please use the script '''./tools/fix_key.sh''' to convert the keys.
 # AlexNet
