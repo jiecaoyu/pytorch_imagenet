@@ -1,4 +1,5 @@
 from __future__ import division
+import caffe
 import torch
 import math
 import random
@@ -36,16 +37,14 @@ class Compose(object):
 
 
 class ToTensor(object):
-    """Convert a ``PIL.Image`` or ``numpy.ndarray`` to tensor.
+    """Convert a ``numpy.ndarray`` to tensor.
 
-    Converts a PIL.Image or numpy.ndarray (H x W x C) in the range
-    [0, 255] to a torch.FloatTensor of shape (C x H x W) in the range [0.0, 1.0].
     """
 
     def __call__(self, pic):
         """
         Args:
-            pic (PIL.Image or numpy.ndarray): Image to be converted to tensor.
+            pic (numpy.ndarray): Image to be converted to tensor.
 
         Returns:
             Tensor: Converted image.
@@ -54,94 +53,28 @@ class ToTensor(object):
             # handle numpy array
             img = torch.from_numpy(pic)
             # backward compatibility
-            return img.float().div(255)
-
-        if accimage is not None and isinstance(pic, accimage.Image):
-            nppic = np.zeros([pic.channels, pic.height, pic.width], dtype=np.float32)
-            pic.copyto(nppic)
-            return torch.from_numpy(nppic)
-
-        # handle PIL Image
-        if pic.mode == 'I':
-            img = torch.from_numpy(np.array(pic, np.int32, copy=False))
-        elif pic.mode == 'I;16':
-            img = torch.from_numpy(np.array(pic, np.int16, copy=False))
-        else:
-            img = torch.ByteTensor(torch.ByteStorage.from_buffer(pic.tobytes()))
-        # PIL image mode: 1, L, P, I, F, RGB, YCbCr, RGBA, CMYK
-        if pic.mode == 'YCbCr':
-            nchannel = 3
-        elif pic.mode == 'I;16':
-            nchannel = 1
-        else:
-            nchannel = len(pic.mode)
-        img = img.view(pic.size[1], pic.size[0], nchannel)
-        # put it from HWC to CHW format
-        # yikes, this transpose takes 80% of the loading time/CPU
-        img = img.transpose(0, 1).transpose(0, 2).contiguous()
-        if isinstance(img, torch.ByteTensor):
-            return img.float().div(255)
-        else:
-            return img
-
-
-class ToPILImage(object):
-    """Convert a tensor to PIL Image.
-
-    Converts a torch.*Tensor of shape C x H x W or a numpy ndarray of shape
-    H x W x C to a PIL.Image while preserving the value range.
-    """
-
-    def __call__(self, pic):
-        """
-        Args:
-            pic (Tensor or numpy.ndarray): Image to be converted to PIL.Image.
-
-        Returns:
-            PIL.Image: Image converted to PIL.Image.
-
-        """
-        npimg = pic
-        mode = None
-        if isinstance(pic, torch.FloatTensor):
-            pic = pic.mul(255).byte()
-        if torch.is_tensor(pic):
-            npimg = np.transpose(pic.numpy(), (1, 2, 0))
-        assert isinstance(npimg, np.ndarray), 'pic should be Tensor or ndarray'
-        if npimg.shape[2] == 1:
-            npimg = npimg[:, :, 0]
-
-            if npimg.dtype == np.uint8:
-                mode = 'L'
-            if npimg.dtype == np.int16:
-                mode = 'I;16'
-            if npimg.dtype == np.int32:
-                mode = 'I'
-            elif npimg.dtype == np.float32:
-                mode = 'F'
-        else:
-            if npimg.dtype == np.uint8:
-                mode = 'RGB'
-        assert mode is not None, '{} is not supported'.format(npimg.dtype)
-        return Image.fromarray(npimg, mode=mode)
-
+            return img.float()
 
 class Normalize(object):
     """Normalize an tensor image with mean and standard deviation.
 
-    Given mean: (R, G, B) and std: (R, G, B),
+    Given mean: (R, G, B),
     will normalize each channel of the torch.*Tensor, i.e.
-    channel = (channel - mean) / std
+    channel = channel - mean
 
     Args:
         mean (sequence): Sequence of means for R, G, B channels respecitvely.
-        std (sequence): Sequence of standard deviations for R, G, B channels
-            respecitvely.
     """
 
-    def __init__(self, mean, std):
-        self.mean = mean
-        self.std = std
+    def __init__(self, mean=None, meanfile=None):
+        if mean:
+            self.mean = mean
+        else:
+            data = open(meanfile, 'rb').read()
+            blob = caffe.proto.caffe_pb2.BlobProto()
+            blob.ParseFromString(data)
+            arr = np.array(caffe.io.blobproto_to_array(blob))
+            self.mean = torch.from_numpy(arr[0].astype('float32'))
 
     def __call__(self, tensor):
         """
@@ -152,8 +85,8 @@ class Normalize(object):
             Tensor: Normalized image.
         """
         # TODO: make efficient
-        for t, m, s in zip(tensor, self.mean, self.std):
-            t.sub_(m).div_(s)
+        for t, m in zip(tensor, self.mean):
+            t.sub_(m)
         return tensor
 
 
@@ -210,8 +143,8 @@ class CenterCrop(object):
         """
         w, h = (img.shape[1], img.shape[2])
         th, tw = self.size
-        w_off = int(round((w - tw) / 2.))
-        h_off = int(round((h - th) / 2.))
+        w_off = int((w - tw) / 2.)
+        h_off = int((h - th) / 2.)
         img = img[:, h_off:h_off+th, w_off:w_off+tw]
         return img
 
