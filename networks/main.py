@@ -38,7 +38,7 @@ parser.add_argument('-b', '--batch-size', default=256, type=int,
                     metavar='N', help='mini-batch size (default: 256)')
 parser.add_argument('--lr', '--learning-rate', default=0.01, type=float,
                     metavar='LR', help='initial learning rate')
-parser.add_argument('--momentum', default=0.95, type=float, metavar='M',
+parser.add_argument('--momentum', default=0.90, type=float, metavar='M',
                     help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float,
                     metavar='W', help='weight decay (default: 5e-4)')
@@ -49,7 +49,7 @@ parser.add_argument('--resume', default='', type=str, metavar='PATH',
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
 parser.add_argument('--pretrained', dest='pretrained', action='store_true',
-                    help='use pre-trained model')
+                    default=False, help='use pre-trained model')
 parser.add_argument('--world-size', default=1, type=int,
                     help='number of distributed processes')
 parser.add_argument('--dist-url', default='tcp://224.66.41.62:23456', type=str,
@@ -71,15 +71,11 @@ def main():
                                 world_size=args.world_size)
 
     # create model
-    if args.pretrained:
-        print("=> using pre-trained model '{}'".format(args.arch))
+    if args.arch=='alexnet':
+        model = model_list.alexnet(pretrained=args.pretrained)
+        input_size = 227
     else:
-        print("=> creating model '{}'".format(args.arch))
-        if args.arch=='alexnet':
-            model = model_list.alexnet()
-            input_size = 227
-        else:
-            raise Exception('Model not supported yet')
+        raise Exception('Model not supported yet')
 
     if not args.distributed:
         if args.arch.startswith('alexnet') or args.arch.startswith('vgg'):
@@ -115,15 +111,15 @@ def main():
     cudnn.benchmark = True
 
     # Data loading code
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
+    normalize = transforms.Normalize(
+            meanfile='/data/jiecaoyu/imagenet/imagenet_mean.binaryproto')
 
     train_dataset = datasets.ImageFolder(
         transforms.Compose([
-            transforms.RandomSizedCrop(input_size),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize,
+            transforms.RandomSizedCrop(input_size),
         ]),
         Train=True)
 
@@ -138,20 +134,20 @@ def main():
 
     val_loader = torch.utils.data.DataLoader(
         datasets.ImageFolder(transforms.Compose([
-            transforms.Scale(256),
-            transforms.CenterCrop(input_size),
             transforms.ToTensor(),
             normalize,
+            transforms.CenterCrop(input_size),
         ]),
         Train=False),
         batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
+    print model
+
     if args.evaluate:
         validate(val_loader, model, criterion)
         return
 
-    print model
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
@@ -296,6 +292,7 @@ class AverageMeter(object):
 def adjust_learning_rate(optimizer, epoch):
     """Sets the learning rate to the initial LR decayed by 10 every 40 epochs"""
     lr = args.lr * (0.1 ** (epoch // 40))
+    print 'Learning rate:', lr
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
