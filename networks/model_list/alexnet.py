@@ -1,4 +1,5 @@
 import torch
+import os
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
 
@@ -80,6 +81,7 @@ def alexnet(pretrained=False, **kwargs):
     """
     model = AlexNet(**kwargs)
     if pretrained:
-        pretrained_model = torch.load('model_list/alexnet.pth.tar')
+        model_path = 'model_list/alexnet.pth.tar'
+        pretrained_model = torch.load(model_path)
         model.load_state_dict(pretrained_model['state_dict'])
     return model

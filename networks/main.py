@@ -29,6 +29,8 @@ import datasets.transforms as transforms
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 parser.add_argument('--arch', '-a', metavar='ARCH', default='alexnet',
                     help='model architecture (default: alexnet)')
+parser.add_argument('--data', metavar='DATA_PATH', default='./data/',
+                    help='path to imagenet data (default: ./data/)')
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
                     help='number of data loading workers (default: 8)')
 parser.add_argument('--epochs', default=160, type=int, metavar='N',
@@ -112,10 +114,17 @@ def main():
     cudnn.benchmark = True
 
     # Data loading code
+    if not os.path.exists(args.data+'/imagenet_mean.binaryproto'):
+        print("==> Data directory"+args.data+"does not exits")
+        print("==> Please specify the correct data path by")
+        print("==>     --data <DATA_PATH>")
+        return
+
     normalize = transforms.Normalize(
-            meanfile='/data/jiecaoyu/imagenet/imagenet_mean.binaryproto')
+            meanfile=args.data+'/imagenet_mean.binaryproto')
 
     train_dataset = datasets.ImageFolder(
+        args.data,
         transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
@@ -134,7 +143,7 @@ def main():
         num_workers=args.workers, pin_memory=True, sampler=train_sampler)
 
     val_loader = torch.utils.data.DataLoader(
-        datasets.ImageFolder(transforms.Compose([
+        datasets.ImageFolder(args.data, transforms.Compose([
             transforms.ToTensor(),
             normalize,
             transforms.CenterCrop(input_size),

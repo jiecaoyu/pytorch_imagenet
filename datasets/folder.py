@@ -92,14 +92,14 @@ class ImageFolder(data.Dataset):
         imgs (list): List of (image path, class_index) tuples
     """
 
-    def __init__(self, transform=None, target_transform=None,
+    def __init__(self, data_path=None, transform=None, target_transform=None,
                  loader=default_loader, Train=True):
         self.transform = transform
         self.target_transform = target_transform
         self.loader = loader
 
         self.Train = Train
-        self.lmdb_dir = '/data/jiecaoyu/imagenet/lmdb' # this is mannually set, NEED change
+        self.lmdb_dir = data_path
         if self.Train:
             self.lmdb_dir = self.lmdb_dir+'/ilsvrc12_train_lmdb/'
         else:
