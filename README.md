@@ -16,11 +16,11 @@ The implementation is in ```./networks/model_list/alexnet.py```. Since PyTorch d
 ### Training from scratch
 ```bash
 $ cd networks
-$ python main.py --arch alexent
+$ python main.py --arch alexnet
 ```
 
 ### Evaluate pretained model
 Pretrained model is available [here](https://drive.google.com/uc?export=download&id=0B-7I62GOSnZ8NzVxZndDU2dYcHM). The pretained model achieves an accuracy of 57.494% (Top-1) and 80.588% (Top-5). Please download it and put it under the directory of ```./networks/model_list/```. Run the evaluation by:
 ```bash
-$ python main.py --arch alexent --pretrained --evaluate
+$ python main.py --arch alexnet --pretrained --evaluate
 ```
