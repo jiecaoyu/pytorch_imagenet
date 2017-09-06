@@ -7,7 +7,8 @@ The implementation of AlexNet in [PyTorch Vision](https://github.com/pytorch/vis
 # Data Preparation
 The original data loader ([link](https://github.com/pytorch/vision#imagenet-12)) is slow. Therefore, I build a new data loader with Caffe utils.
 ### Genearte LMDB
-Follow the [instructions](http://caffe.berkeleyvision.org/gathered/examples/imagenet.html) for Caffe to build the LMDB dataset of ImageNet. However, the ```key``` used in the LMDB dataset is not suitable for accessing. Therefore, please use the script ```./tools/fix_key.sh``` to convert the keys.
+The preprocessed datasets can be found [here](https://drive.google.com/open?id=0B-7I62GOSnZ8aENhOEtESVFHa2M). Please download it and uncompress it into the directory of ```./networks/data/```.  
+To generate the dataset from raw images, please follow the [instructions](http://caffe.berkeleyvision.org/gathered/examples/imagenet.html) for Caffe to build the LMDB dataset of ImageNet. However, the ```key``` used in the LMDB dataset is not suitable for accessing. Therefore, please use the script ```./tools/fix_key.sh``` to convert the keys.
 Preprocessed data will be available soon.
 ### Load LMDB
 Please change the variable ```lmdb_dir``` in ```./datasets/folder.py``` to the directory which includes the training and validating LMDB datasets.
